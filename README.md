@@ -1,5 +1,5 @@
 # TO-DO
-gunakan python3.8 atau yang lebih baru
+Gunakan python3.8 atau yang lebih baru
 buatlah dulu lingkungan virtual environment
 1. virtualenv venv
 2. source venv/bin/activate
