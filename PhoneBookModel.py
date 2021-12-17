@@ -28,7 +28,6 @@ class PhoneBook:
     def create(self,info):
         try:
             id = str(uuid.uuid1())
-            print(info)
 
             with self.db.cursor() as cursor:
                 cursor.execute('INSERT INTO phonebook (id, nama, alamat, notelp) VALUES(%s, %s, %s, %s)', 
@@ -38,7 +37,6 @@ class PhoneBook:
 
             return dict(status='OK',id=id)
         except Exception as e:
-            print(e)
             return dict(status='ERR',msg='Tidak bisa Create')
 
     def delete(self,id):
