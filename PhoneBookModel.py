@@ -1,50 +1,98 @@
-import shelve
+import pymysql.cursors
 import uuid
 import os
 
 class PhoneBook:
     def __init__(self):
         self.namafile = 'phonebook.db'
-        self.db = shelve.open(self.namafile,writeback=True)
+        self.db = pymysql.connect(host=os.environ['DB_ADDRESS'],
+                                    user=os.environ['DB_USERNAME'],
+                                    password=os.environ['DB_PASSWORD'],
+                                    database=os.environ['DB_NAME'],
+                                    port=int(os.environ['DB_PORT']),
+                                    cursorclass=pymysql.cursors.DictCursor,
+                                    autocommit=False)
+
     def list(self):
         data = []
         try:
-            for i in self.db.keys():
-                data.append(dict(id=i,data=self.db[i]))
+            with self.db.cursor() as cursor:
+                cursor.execute('SELECT id, nama, alamat, notelp from phonebook') 
+                
+                data = cursor.fetchall()
+
             return dict(status='OK',data=data)
         except:
             return dict(status='ERR',msg='Error')
+
     def create(self,info):
         try:
             id = str(uuid.uuid1())
-            self.db[id] = info
+            print(info)
+
+            with self.db.cursor() as cursor:
+                cursor.execute('INSERT INTO phonebook (id, nama, alamat, notelp) VALUES(%s, %s, %s, %s)', 
+                    (id,info['nama'],info['alamat'],info['notelp'],)) 
+
+                self.db.commit()
+
             return dict(status='OK',id=id)
-        except:
+        except Exception as e:
+            print(e)
             return dict(status='ERR',msg='Tidak bisa Create')
+
     def delete(self,id):
         try:
-            del self.db[id]
+            with self.db.cursor() as cursor:
+                cursor.execute('DELETE FROM phonebook WHERE id = %s', (id,)) 
+
+                self.db.commit()
+                
             return dict(status='OK',msg='{} deleted' . format(id), id=id)
         except:
             return dict(status='ERR',msg='Tidak bisa Delete')
+
     def update(self,id,info):
         try:
-            self.db[id]=info
+            str_set_update = ""
+            first = True
+
+            for i in info:
+                if not first:
+                    str_set_update += ", "
+                else :
+                    first = False
+
+                str_set_update +=  i + " = '" + info[i] + "' "
+            
+            with self.db.cursor() as cursor:
+                cursor.execute('UPDATE phonebook SET {} WHERE id = %s'.format(str_set_update), (id,)) 
+
+                self.db.commit()
+
             return dict(status='OK',msg='{} updated' . format(id), id=id)
         except:
             return dict(status='ERR',msg='Tidak bisa Update')
+
     def read(self,id):
         try:
-            return dict(status='OK',id=id,data=self.db[id])
+            data = None
+            with self.db.cursor() as cursor:
+                cursor.execute('SELECT id, nama, alamat, notelp from phonebook WHERE id = %s', (id,)) 
+                
+                data = cursor.fetchone()
+            return dict(status='OK',id=id,data=data)
         except:
             return dict(status='ERR',msg='Tidak Ketemu')
+
     def measure(self):
-# kita ingin menggunakan file size yang digunakan untuk menyimpan record (phonebook.db)
-# dan jumlah record yang digunakan
-        file = os.stat(self.namafile)
-        file_size = file.st_size  #dalam bytes
-        jumlah_record = len(self.db.keys())
-        return dict(status="OK",data=dict(size=file_size,record=jumlah_record))
+        data = None
+        with self.db.cursor() as cursor:
+            cursor.execute('SELECT COUNT(*) FROM phonebook') 
+            
+            data = cursor.fetchone()
+
+        return dict(status="OK",data=dict(record=data))
 
 
 

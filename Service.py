@@ -7,9 +7,11 @@ from PhoneBookModel import *
 class PhoneBooksAPI(Resource):
     def __init__(self):
         self.phonebook = PhoneBook()
+
     def get(self):
         s = self.phonebook.list()
         return jsonify(s)
+
     def post(self):
         try:
             self.datakirim = request.get_json()
@@ -21,6 +23,7 @@ class PhoneBooksAPI(Resource):
 class PhoneBookAPIMeasure(Resource):
     def __init__(self):
         self.phonebook = PhoneBook()
+
     def get(self):
         s = self.phonebook.measure()
         return jsonify(s)
@@ -29,9 +32,11 @@ class PhoneBookAPIMeasure(Resource):
 class PhoneBookAPI(Resource):
     def __init__(self):
         self.phonebook = PhoneBook()
+
     def get(self,id):
         s = self.phonebook.read(id)
         return jsonify(s)
+
     def put(self,id):
         try:
             info = request.get_json()
@@ -39,6 +44,7 @@ class PhoneBookAPI(Resource):
             info = dict()
         s = self.phonebook.update(id,info)
         return jsonify(s)
+
     def delete(self,id):
         s = self.phonebook.delete(id)
         return jsonify(s)
