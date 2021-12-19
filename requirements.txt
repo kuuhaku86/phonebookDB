@@ -3,3 +3,4 @@ flask_restful
 uuid
 requests
 PyMySQL
+gunicorn
